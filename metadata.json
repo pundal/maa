@@ -1,0 +1,6 @@
+{
+  "name": "Pundal Durga Puja Mandap",
+  "description": "Official portal for Pundal Durga Puja Mandap 50th Golden Jubilee Celebration (1976 - 2026), featuring live video altar, interactive 3D hero scene, photo memories, scan-to-pay donation, and live committee management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

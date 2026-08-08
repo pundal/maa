@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "PujaInfo": {
+      "title": "PujaInfo",
+      "description": "General information about the Durga Puja festival dates, village mandap history, and committee message",
+      "type": "object",
+      "properties": {
+        "pujaDates": { "type": "string", "maxLength": 500 },
+        "historyText": { "type": "string", "maxLength": 5000 },
+        "committeeMessage": { "type": "string", "maxLength": 5000 },
+        "updatedAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["pujaDates", "historyText", "committeeMessage"]
+    },
+    "Photo": {
+      "title": "Photo",
+      "description": "Memories photo item grouped by year",
+      "type": "object",
+      "properties": {
+        "year": { "type": "string", "maxLength": 10 },
+        "caption": { "type": "string", "maxLength": 1000 },
+        "imageUrl": { "type": "string", "maxLength": 500000 },
+        "thumbnailUrl": { "type": "string", "maxLength": 500000 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["year", "caption", "imageUrl", "order"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authenticated admin user record",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "/puja_info/{infoId}": {
+      "schema": "PujaInfo",
+      "description": "Main puja information document"
+    },
+    "/photos/{photoId}": {
+      "schema": "Photo",
+      "description": "Year-wise photo memories"
+    },
+    "/admins/{adminUid}": {
+      "schema": "Admin",
+      "description": "Registered committee admins"
+    }
+  }
+}
