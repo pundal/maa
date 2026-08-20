@@ -19,30 +19,39 @@ export const ThreeMandapCanvas: React.FC<ThreeMandapCanvasProps> = ({ diyas, onL
     const container = containerRef.current;
     if (!container) return;
 
-    // Scene, Camera, Renderer
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2('#1a0505', 0.035);
+    let animationFrameId: number;
+    let renderer: THREE.WebGLRenderer | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let handleMouseMove: ((e: MouseEvent) => void) | null = null;
 
-    const camera = new THREE.PerspectiveCamera(
-      55,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      100
-    );
-    camera.position.set(0, 3.2, 8.5);
-    camera.lookAt(0, 2.0, 0);
+    try {
+      const initWidth = container.clientWidth || 800;
+      const initHeight = container.clientHeight || 520;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      // Scene, Camera, Renderer
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2('#1a0505', 0.035);
 
-    // Clear existing children
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-    container.appendChild(renderer.domElement);
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        initWidth / (initHeight || 1),
+        0.1,
+        100
+      );
+      camera.position.set(0, 3.2, 8.5);
+      camera.lookAt(0, 2.0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'default' });
+      renderer.setSize(initWidth, initHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Clear existing children
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      container.appendChild(renderer.domElement);
 
     // LIGHTS
     const ambientLight = new THREE.AmbientLight('#ffe0b2', 0.6);
@@ -278,26 +287,37 @@ export const ThreeMandapCanvas: React.FC<ThreeMandapCanvasProps> = ({ diyas, onL
 
     // RESIZE OBSERVER
     const resizeObserver = new ResizeObserver(() => {
-      if (!container) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      camera.aspect = width / height;
+      if (!container || !renderer) return;
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 520;
+      camera.aspect = width / (height || 1);
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
     });
 
     resizeObserver.observe(container);
+  } catch (err) {
+    console.warn('Three.js Mandap Canvas initialization deferred or unsupported:', err);
+  }
 
-    return () => {
+  return () => {
+    if (handleMouseMove) {
       window.removeEventListener('mousemove', handleMouseMove);
+    }
+    if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
+    }
+    if (resizeObserver) {
       resizeObserver.disconnect();
-      if (renderer.domElement && container.contains(renderer.domElement)) {
+    }
+    if (renderer) {
+      if (renderer.domElement && container && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-    };
-  }, [diyas.length]);
+    }
+  };
+}, [diyas.length]);
 
   // Festive Web Audio sound generator (Dhaki drum beat & Shankha sound effect synthesized natively!)
   const toggleFestiveAudio = () => {

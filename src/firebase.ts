@@ -6,8 +6,8 @@ import { initialPujaInfo, initialPhotos, initialSchedule, initialCommitteeMember
 
 // Helper to check if valid firebase config exists
 const getFirebaseConfig = () => {
-  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
-  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  const apiKey = import.meta.env?.VITE_FIREBASE_API_KEY;
+  const projectId = import.meta.env?.VITE_FIREBASE_PROJECT_ID;
 
   if (!apiKey || apiKey === 'YOUR_API_KEY' || !projectId) {
     return null;
@@ -15,11 +15,11 @@ const getFirebaseConfig = () => {
 
   return {
     apiKey,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
+    authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
     projectId,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+    storageBucket: import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
+    messagingSenderId: import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: import.meta.env?.VITE_FIREBASE_APP_ID || '',
   };
 };
 
