@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
 import { DonationRecord, UpiConfig } from '../types';
-import { Heart, QrCode, Copy, Check, Sparkles, ShieldCheck, Download, Users } from 'lucide-react';
+import { Heart, QrCode, Copy, Check, Sparkles, ShieldCheck, Download, Users, Lock, Shield, KeyRound, CheckCircle2, Trash2, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface DonationSectionProps {
   upiConfig: UpiConfig;
   donations: DonationRecord[];
-  onAddDonation: (donorName: string, amount: number, villageName?: string, message?: string) => Promise<void>;
+  onAddDonation: (donorName: string, amount: number, villageName?: string, message?: string) => Promise<DonationRecord | void>;
+  onDeleteDonation?: (id: string) => Promise<void>;
+  isAdminLoggedIn: boolean;
+  onAdminLogin?: (passcode: string) => boolean;
+  onNavigateToAdmin?: () => void;
 }
 
 export const DonationSection: React.FC<DonationSectionProps> = ({
   upiConfig,
   donations,
   onAddDonation,
+  onDeleteDonation,
+  isAdminLoggedIn,
+  onAdminLogin,
+  onNavigateToAdmin,
 }) => {
   const { t } = useLanguage();
   const [amount, setAmount] = useState<number>(501);
@@ -24,7 +32,16 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedReceipt, setSubmittedReceipt] = useState<DonationRecord | null>(null);
 
+  // Admin auth states
+  const [adminPinInput, setAdminPinInput] = useState<string>('');
+  const [pinError, setPinError] = useState<boolean>(false);
+  const [showAuthBox, setShowAuthBox] = useState<boolean>(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [actionNotification, setActionNotification] = useState<string>('');
+
   const presetAmounts = [251, 501, 1008, 2100, 5001];
+
+  const totalDonationSum = donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
 
   // Standard UPI URL string
   const upiUrl = `upi://pay?pa=${encodeURIComponent(upiConfig.upiId)}&pn=${encodeURIComponent(
@@ -36,14 +53,44 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
     upiUrl
   )}`;
 
+  const notifyAction = (msg: string) => {
+    setActionNotification(msg);
+    setTimeout(() => setActionNotification(''), 3500);
+  };
+
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(upiConfig.upiId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleAdminAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onAdminLogin) {
+      const success = onAdminLogin(adminPinInput);
+      if (success) {
+        setPinError(false);
+        setAdminPinInput('');
+        setShowAuthBox(false);
+        notifyAction('Admin privileges verified! You can now register contributions and manage the donor wall.');
+      } else {
+        setPinError(true);
+      }
+    } else if (adminPinInput === '1976' || adminPinInput === 'admin') {
+      setPinError(false);
+      setAdminPinInput('');
+      setShowAuthBox(false);
+    } else {
+      setPinError(true);
+    }
+  };
+
   const handleDonationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdminLoggedIn) {
+      setShowAuthBox(true);
+      return;
+    }
     if (amount <= 0) return;
 
     setIsSubmitting(true);
@@ -54,7 +101,21 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
         villageName,
         message
       );
-      setSubmittedReceipt(newRecord);
+      if (newRecord) {
+        setSubmittedReceipt(newRecord);
+      } else {
+        setSubmittedReceipt({
+          id: 'don-' + Date.now(),
+          donorName: donorName || 'Anonymous Devotee',
+          villageName,
+          amount,
+          date: new Date().toISOString().split('T')[0],
+          message,
+        });
+      }
+
+      setDonorName('');
+      setMessage('Joy Maa Durga');
 
       // Trigger festive confetti celebration!
       confetti({
@@ -67,6 +128,14 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
       console.error(err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteRecord = async (id: string) => {
+    if (onDeleteDonation) {
+      await onDeleteDonation(id);
+      setDeleteConfirmId(null);
+      notifyAction('Contribution record deleted from donor wall.');
     }
   };
 
@@ -85,6 +154,21 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
           {t.scanToPayDesc}
         </p>
       </div>
+
+      {actionNotification && (
+        <div className="bg-emerald-950/90 text-emerald-200 border border-emerald-500/50 p-4 rounded-xl text-xs font-bold flex items-center justify-between gap-2 max-w-3xl mx-auto shadow-xl">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{actionNotification}</span>
+          </div>
+          <button
+            onClick={() => setActionNotification('')}
+            className="text-emerald-400 hover:text-white text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Col: UPI QR & Presets */}
@@ -169,101 +253,240 @@ export const DonationSection: React.FC<DonationSectionProps> = ({
 
         {/* Right Col: Register Donation & Wall of Devotees */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Register Form */}
-          <div className="bg-[#1a0505] p-6 sm:p-8 rounded-2xl gold-border">
-            <h3 className="text-xl font-serif-cinzel font-bold text-[#ffd700] mb-2">
-              {t.registerContribution}
-            </h3>
-            <p className="text-xs text-[#f5f2ed]/70 mb-6">
-              {t.registerSub}
-            </p>
-
-            <form onSubmit={handleDonationSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
-                    {t.yourFullName}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Samarjit Das"
-                    value={donorName}
-                    onChange={(e) => setDonorName(e.target.value)}
-                    required
-                    className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
-                    {t.villageLocation}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Pundal East / Kolkata"
-                    value={villageName}
-                    onChange={(e) => setVillageName(e.target.value)}
-                    className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
-                  />
-                </div>
-              </div>
-
+          {/* Register Form (Enforced by Admin Privilege) */}
+          <div className="bg-[#1a0505] p-6 sm:p-8 rounded-2xl gold-border space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#d4af37]/20 pb-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
-                  {t.devotionalMessage}
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Maa Durga bless Pundal village with joy and health"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
-                />
+                <h3 className="text-xl font-serif-cinzel font-bold text-[#ffd700]">
+                  {t.registerContribution}
+                </h3>
+                <p className="text-xs text-[#f5f2ed]/70 mt-0.5">
+                  {t.registerSub}
+                </p>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-[#d4af37] via-[#f5f2ed] to-[#aa820a] hover:brightness-110 text-[#1a0505] p-3.5 rounded-xl font-bold text-sm shadow-xl transition-all cursor-pointer"
-              >
-                {isSubmitting ? 'Recording Donation...' : `${t.confirmDonationBtn} (₹${amount})`}
-              </button>
-            </form>
+              {isAdminLoggedIn ? (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[11px] font-semibold self-start sm:self-auto">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{t.adminVerifiedBadge}</span>
+                </span>
+              ) : null}
+            </div>
+
+            {isAdminLoggedIn ? (
+              <form onSubmit={handleDonationSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
+                      {t.yourFullName}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Samarjit Das"
+                      value={donorName}
+                      onChange={(e) => setDonorName(e.target.value)}
+                      required
+                      className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
+                      {t.villageLocation}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pundal East / Kolkata"
+                      value={villageName}
+                      onChange={(e) => setVillageName(e.target.value)}
+                      className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-[#d4af37] mb-1">
+                    {t.devotionalMessage}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Maa Durga bless Pundal village with joy and health"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full bg-[#2a0808] border border-[#d4af37]/30 rounded-xl p-3 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-[#d4af37] via-[#f5f2ed] to-[#aa820a] hover:brightness-110 text-[#1a0505] p-3.5 rounded-xl font-bold text-sm shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-[#b30000]" />
+                  <span>{isSubmitting ? 'Recording Official Donation...' : `${t.confirmDonationBtn} (₹${amount})`}</span>
+                </button>
+              </form>
+            ) : (
+              /* If not logged in as Admin, show Authorization Required View */
+              <div className="bg-[#2a0808]/90 border border-[#d4af37]/40 p-5 rounded-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-[#1a0505] rounded-xl border border-[#d4af37]/30">
+                      <Lock className="w-5 h-5 text-[#ffd700]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-serif-cinzel font-bold text-[#ffd700]">
+                        {t.adminLoginToRegisterContribution}
+                      </h4>
+                      <p className="text-xs text-[#f5f2ed]/70 mt-0.5">
+                        {t.adminDonationNotice}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!showAuthBox && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthBox(true)}
+                      className="flex items-center gap-2 bg-[#1a0505] hover:bg-[#3d0c0c] text-[#ffd700] border border-[#d4af37]/50 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
+                    >
+                      <KeyRound className="w-4 h-4 text-[#d4af37]" />
+                      <span>Enter PIN to Unlock</span>
+                    </button>
+                  )}
+                </div>
+
+                {showAuthBox && (
+                  <form onSubmit={handleAdminAuthSubmit} className="pt-2 border-t border-[#d4af37]/20 space-y-3">
+                    <p className="text-xs text-[#f5f2ed]/80">
+                      {t.adminDonationAuthSub}
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <KeyRound className="absolute left-3 top-3 w-4 h-4 text-[#d4af37]" />
+                        <input
+                          type="password"
+                          placeholder="Enter Committee PIN"
+                          value={adminPinInput}
+                          onChange={(e) => {
+                            setAdminPinInput(e.target.value);
+                            if (pinError) setPinError(false);
+                          }}
+                          autoFocus
+                          required
+                          className="w-full bg-[#1a0505] border border-[#d4af37]/40 rounded-xl py-2.5 pl-9 pr-3 text-xs text-[#f5f2ed] focus:border-[#ffd700] outline-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="bg-gradient-to-r from-[#d4af37] to-[#aa820a] hover:brightness-110 text-[#1a0505] px-5 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        Verify & Unlock Form
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAuthBox(false)}
+                        className="px-3 py-2 text-xs text-[#f5f2ed]/60 hover:text-[#ffd700] cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {pinError && (
+                      <p className="text-xs text-red-400 font-medium">
+                        Invalid Committee PIN. Please try again.
+                      </p>
+                    )}
+                  </form>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Donors Wall of Appreciation */}
+          {/* Donors Wall of Appreciation (with Admin Deletion functionality) */}
           <div className="bg-[#1a0505] p-6 sm:p-8 rounded-2xl gold-border space-y-4">
-            <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#d4af37]/20 pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#ffd700]" />
                 <h3 className="text-lg font-serif-cinzel font-bold text-[#ffd700]">
                   {t.donorsWallTitle}
                 </h3>
               </div>
-              <span className="text-xs text-[#d4af37]">
-                {t.totalContributions}: {donations.length}
-              </span>
+              <div className="flex items-center gap-3 text-xs text-[#d4af37]">
+                <span>
+                  {t.totalContributions}: <strong className="text-[#ffd700]">{donations.length}</strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Total: <strong className="text-emerald-400 font-bold">₹{totalDonationSum.toLocaleString('en-IN')}</strong>
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
               {donations.map((don) => (
                 <div
                   key={don.id}
-                  className="bg-[#2a0808]/70 p-4 rounded-xl border border-[#d4af37]/20 flex items-center justify-between gap-4"
+                  className="bg-[#2a0808]/70 p-4 rounded-xl border border-[#d4af37]/20 flex items-center justify-between gap-4 transition-all hover:border-[#d4af37]/40"
                 >
-                  <div>
-                    <span className="block text-sm font-bold text-[#f5f2ed]">{don.donorName}</span>
-                    <span className="block text-[11px] text-[#d4af37]">{don.villageName} • {don.date}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-[#f5f2ed]">{don.donorName}</span>
+                      <span className="text-[10px] bg-[#1a0505] text-[#d4af37] px-2 py-0.5 rounded border border-[#d4af37]/30">
+                        {don.villageName || 'Pundal'}
+                      </span>
+                    </div>
+                    <span className="block text-[11px] text-[#f5f2ed]/50 mt-0.5">{don.date}</span>
                     {don.message && (
-                      <p className="text-xs text-[#f5f2ed]/70 italic mt-1">"{don.message}"</p>
+                      <p className="text-xs text-[#f5f2ed]/75 italic mt-1.5 bg-[#1a0505]/40 p-2 rounded-lg border border-[#d4af37]/10">
+                        "{don.message}"
+                      </p>
                     )}
                   </div>
 
-                  <div className="bg-[#1a0505] px-3 py-1.5 rounded-lg border border-[#d4af37]/40 text-sm font-bold text-[#ffd700] whitespace-nowrap">
-                    ₹{don.amount}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="bg-[#1a0505] px-3.5 py-1.5 rounded-lg border border-[#d4af37]/40 text-sm font-bold text-[#ffd700] whitespace-nowrap shadow-sm">
+                      ₹{don.amount}
+                    </div>
+
+                    {/* Admin Deletion Action Button */}
+                    {isAdminLoggedIn && onDeleteDonation && (
+                      <div>
+                        {deleteConfirmId === don.id ? (
+                          <div className="flex items-center gap-1.5 bg-red-950 p-1.5 rounded-lg border border-red-500/40">
+                            <button
+                              onClick={() => handleDeleteRecord(don.id)}
+                              className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold cursor-pointer"
+                              title="Confirm Delete"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="px-1.5 py-1 text-red-200 hover:text-white text-[10px] cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(don.id)}
+                            className="p-2 text-red-400 hover:text-red-200 hover:bg-red-950/80 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-red-500/30"
+                            title={t.deleteContributionBtn}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+
+              {donations.length === 0 && (
+                <div className="text-center py-8 text-xs text-[#f5f2ed]/60">
+                  No donation records yet. Authorized committee members can record the first contribution above.
+                </div>
+              )}
             </div>
           </div>
         </div>

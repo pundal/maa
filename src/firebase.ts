@@ -214,6 +214,20 @@ export async function addDonationRecord(donorName: string, amount: number, villa
   return newDonation;
 }
 
+export async function deleteDonationRecord(id: string): Promise<void> {
+  const current = await fetchDonations();
+  const updated = current.filter((d) => d.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.DONATIONS, JSON.stringify(updated));
+
+  if (db) {
+    try {
+      await deleteDoc(doc(db, 'donations', id));
+    } catch (e) {
+      console.warn('Firestore delete donation failed:', e);
+    }
+  }
+}
+
 // 6. UPI CONFIG
 export async function fetchUpiConfig(): Promise<UpiConfig> {
   const saved = localStorage.getItem(LOCAL_STORAGE_KEYS.UPI_CONFIG);
@@ -230,18 +244,46 @@ export async function saveUpiConfig(config: UpiConfig): Promise<void> {
 }
 
 // 7. VIRTUAL DIYAS
+const EXCLUDED_DIYA_NAMES = ['subhasish', 'sumit ganguly', 'ananya roy'];
+
 export async function fetchVirtualDiyas(): Promise<VirtualDiya[]> {
   const saved = localStorage.getItem(LOCAL_STORAGE_KEYS.DIYAS);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed: VirtualDiya[] = JSON.parse(saved);
+      // Filter out excluded names
+      const filtered = parsed.filter(
+        (d) =>
+          !EXCLUDED_DIYA_NAMES.some((excluded) =>
+            d.devoteeName.toLowerCase().includes(excluded)
+          )
+      );
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.DIYAS, JSON.stringify(filtered));
+      }
+      return filtered;
     } catch {}
   }
-  return [
-    { id: '1', devoteeName: 'Subhasish & Family', message: 'Maa Durga bless Pundal village with health & prosperity', timestamp: 'Just now', color: '#FFD700' },
-    { id: '2', devoteeName: 'Ananya Roy', message: 'Joy Maa Durga!', timestamp: '10 mins ago', color: '#FF4500' },
-    { id: '3', devoteeName: 'Sumit Ganguly', message: 'Warm Shubho Sharadiya greetings to all!', timestamp: '25 mins ago', color: '#FF8C00' },
+
+  const defaultDiyas: VirtualDiya[] = [
+    {
+      id: 'diya-init-1',
+      devoteeName: 'Pundal Puja Committee',
+      message: 'May Maa Durga bless all devotees and villagers with happiness & health',
+      timestamp: 'Today',
+      color: '#FFD700',
+    },
+    {
+      id: 'diya-init-2',
+      devoteeName: 'Pundal Devotees',
+      message: 'Joy Maa Durga! Warm Golden Jubilee Greetings to everyone',
+      timestamp: 'Today',
+      color: '#FF8C00',
+    },
   ];
+
+  localStorage.setItem(LOCAL_STORAGE_KEYS.DIYAS, JSON.stringify(defaultDiyas));
+  return defaultDiyas;
 }
 
 export async function addVirtualDiya(devoteeName: string, message: string): Promise<VirtualDiya> {
@@ -258,6 +300,12 @@ export async function addVirtualDiya(devoteeName: string, message: string): Prom
   const updated = [newDiya, ...current.slice(0, 19)];
   localStorage.setItem(LOCAL_STORAGE_KEYS.DIYAS, JSON.stringify(updated));
   return newDiya;
+}
+
+export async function deleteVirtualDiya(id: string): Promise<void> {
+  const current = await fetchVirtualDiyas();
+  const updated = current.filter((d) => d.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.DIYAS, JSON.stringify(updated));
 }
 
 // 8. ADMIN LOGIN HANDLERS (Passcode or Firebase Auth)

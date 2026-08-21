@@ -1,15 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Flame, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Flame, Sparkles, Volume2, VolumeX, Lock, Shield, CheckCircle2 } from 'lucide-react';
 import { VirtualDiya } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface ThreeMandapCanvasProps {
   diyas: VirtualDiya[];
   onLightDiyaClick: () => void;
+  isAdminLoggedIn: boolean;
 }
 
-export const ThreeMandapCanvas: React.FC<ThreeMandapCanvasProps> = ({ diyas, onLightDiyaClick }) => {
+export const ThreeMandapCanvas: React.FC<ThreeMandapCanvasProps> = ({
+  diyas,
+  onLightDiyaClick,
+  isAdminLoggedIn,
+}) => {
   const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
@@ -454,14 +459,27 @@ export const ThreeMandapCanvas: React.FC<ThreeMandapCanvasProps> = ({ diyas, onL
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button
-            onClick={onLightDiyaClick}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa820a] hover:brightness-110 text-[#1a0505] px-6 py-3 rounded-xl font-bold text-sm shadow-xl transition-all active:scale-95 cursor-pointer"
-          >
-            <Flame className="w-5 h-5 fill-current text-[#b30000]" />
-            <span>{t.lightDiyaBtn}</span>
-          </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          {isAdminLoggedIn ? (
+            <button
+              onClick={onLightDiyaClick}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa820a] hover:brightness-110 text-[#1a0505] px-6 py-3 rounded-xl font-bold text-sm shadow-xl transition-all active:scale-95 cursor-pointer"
+            >
+              <Flame className="w-5 h-5 fill-current text-[#b30000]" />
+              <span>{t.lightDiyaBtn}</span>
+              <span className="text-[10px] bg-[#1a0505]/80 text-[#ffd700] px-2 py-0.5 rounded-full uppercase tracking-wider ml-1">
+                Admin
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={onLightDiyaClick}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#2a0808]/90 hover:bg-[#3d0c0c] text-[#ffd700] border border-[#d4af37]/60 hover:border-[#ffd700] px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-xl transition-all active:scale-95 cursor-pointer"
+            >
+              <Lock className="w-4 h-4 text-[#d4af37]" />
+              <span>{t.adminLoginToLightDiya}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

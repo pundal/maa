@@ -70,6 +70,11 @@ export interface Translations {
   uploadImageLabel: string;
   publishPhotoBtn: string;
   noPhotosFound: string;
+  adminLoginToAddPhotos: string;
+  adminPhotoNotice: string;
+  adminAuthRequiredTitle: string;
+  adminAuthRequiredSub: string;
+  adminVerifiedBadge: string;
 
   // Donation
   supportVillage: string;
@@ -90,6 +95,11 @@ export interface Translations {
   confirmDonationBtn: string;
   donorsWallTitle: string;
   totalContributions: string;
+  adminLoginToRegisterContribution: string;
+  adminDonationNotice: string;
+  adminDonationAuthTitle: string;
+  adminDonationAuthSub: string;
+  deleteContributionBtn: string;
 
   // History & Message
   villageHeritage: string;
@@ -103,6 +113,10 @@ export interface Translations {
   devoteeNamePlaceholder: string;
   prayerPlaceholder: string;
   lightVirtualDiyaBtn: string;
+  adminLoginToLightDiya: string;
+  adminDiyaNotice: string;
+  adminDiyaAuthTitle: string;
+  adminDiyaAuthSub: string;
 
   // Admin
   adminLoginTitle: string;
@@ -189,6 +203,11 @@ export const translations: Record<Language, Translations> = {
     uploadImageLabel: 'Upload Photo or Direct Image URL',
     publishPhotoBtn: 'Publish Photo Memory',
     noPhotosFound: 'No photos found',
+    adminLoginToAddPhotos: 'Admin Login to Add Photos',
+    adminPhotoNotice: 'Photo upload & management is restricted to authorized Committee Administrators.',
+    adminAuthRequiredTitle: 'Committee Admin Authorization',
+    adminAuthRequiredSub: 'Enter the committee PIN to unlock photo memory publishing privileges.',
+    adminVerifiedBadge: 'Admin Authorized',
 
     supportVillage: 'Support Pundal Village Mandap',
     scanToPayTitle: 'Scan to Pay & Offer Donation',
@@ -208,6 +227,11 @@ export const translations: Record<Language, Translations> = {
     confirmDonationBtn: 'Confirm & Record Donation',
     donorsWallTitle: 'Pundal Donors Wall',
     totalContributions: 'Total Contributions',
+    adminLoginToRegisterContribution: 'Admin Login to Register Contribution',
+    adminDonationNotice: 'Recording official contributions and managing the donor wall is restricted to authorized Committee Administrators.',
+    adminDonationAuthTitle: 'Committee Admin Authorization',
+    adminDonationAuthSub: 'Enter the committee PIN to unlock contribution registration and receipt issuance privileges.',
+    deleteContributionBtn: 'Delete Contribution',
 
     villageHeritage: 'Village Heritage',
     historyTitle: 'Pundal Durga Puja Mandap History',
@@ -220,12 +244,16 @@ export const translations: Record<Language, Translations> = {
     devoteeNamePlaceholder: 'Your Name / Family Name',
     prayerPlaceholder: 'Your Prayer or Blessing Message (e.g. Joy Maa Durga)',
     lightVirtualDiyaBtn: 'Light Virtual Diya',
+    adminLoginToLightDiya: 'Admin Authorization to Light Diya',
+    adminDiyaNotice: 'Virtual Diya lighting on the 3D sanctum altar is restricted to authorized Committee Administrators.',
+    adminDiyaAuthTitle: 'Committee Admin Verification',
+    adminDiyaAuthSub: 'Enter the committee passcode to light a Diya on the Pundal Mandap Altar on behalf of devotees.',
 
     adminLoginTitle: 'Committee Admin Login',
     adminLoginSub: 'Enter administrative PIN or committee key to manage Pundal Durga Puja website.',
-    enterPin: 'Enter PIN (Default: 1976)',
+    enterPin: 'Enter Committee PIN',
     accessAdminBtn: 'Access Admin Dashboard',
-    defaultPasscodeNote: 'Default Committee Passcode: 1976',
+    defaultPasscodeNote: 'Restricted to Authorized Committee Members',
     adminDashboardTitle: 'Pundal Committee Dashboard',
     authenticatedSession: 'Authenticated Session Active',
     exitDashboard: 'Exit Dashboard',
@@ -303,6 +331,11 @@ export const translations: Record<Language, Translations> = {
     uploadImageLabel: 'ଫୋଟୋ ଅପଲୋଡ୍ କରନ୍ତୁ କିମ୍ବା ଲିଙ୍କ୍ ଦିଅନ୍ତୁ',
     publishPhotoBtn: 'ଫୋଟୋ ସ୍ମୃତି ପ୍ରକାଶ କରନ୍ତୁ',
     noPhotosFound: 'କୌଣସି ଫୋଟୋ ମିଳିଲା ନାହିଁ',
+    adminLoginToAddPhotos: 'ଫୋଟୋ ଯୋଡ଼ିବା ପାଇଁ ଆଡମିନ୍ ଲଗଇନ୍',
+    adminPhotoNotice: 'ଫୋଟୋ ଅପଲୋଡ୍ କେବଳ ଅନୁମୋଦିତ ପୂଜା କମିଟି ଆଡମିନ୍ ପାଇଁ ସୀମିତ।',
+    adminAuthRequiredTitle: 'କମିଟି ଆଡମିନ୍ ପ୍ରମାଣୀକରଣ',
+    adminAuthRequiredSub: 'ଫୋଟୋ ସ୍ମୃତି ଯୋଡ଼ିବା ପାଇଁ କମିଟି PIN ପ୍ରବେଶ କରନ୍ତୁ।',
+    adminVerifiedBadge: 'ଆଡମିନ୍ ଅନୁମୋଦିତ',
 
     supportVillage: 'ପୁଣ୍ଡାଲ ଗ୍ରାମ ମଣ୍ଡପକୁ ସହଯୋଗ କରନ୍ତୁ',
     scanToPayTitle: 'ସ୍କାନ୍ କରି ଦାନ କରନ୍ତୁ',
@@ -322,6 +355,11 @@ export const translations: Record<Language, Translations> = {
     confirmDonationBtn: 'ଦାନ ନିଶ୍ଚିତ କରନ୍ତୁ',
     donorsWallTitle: 'ପୁଣ୍ଡାଲ ଦାତାମାନଙ୍କ ତାଲିକା',
     totalContributions: 'ମୋଟ ସହଯୋଗ',
+    adminLoginToRegisterContribution: 'ଦାନ ପଞ୍ଜୀକରଣ ପାଇଁ ଆଡମିନ୍ ଲଗଇନ୍',
+    adminDonationNotice: 'ଦାନ ପଞ୍ଜୀକରଣ ଏବଂ ଦାତା ତାଲିକା ପରିଚାଳନା କେବଳ ଅନୁମୋଦିତ ପୂଜା କମିଟି ଆଡମିନ୍ ପାଇଁ ସୀମିତ।',
+    adminDonationAuthTitle: 'କମିଟି ଆଡମିନ୍ ପ୍ରମାଣୀକରଣ',
+    adminDonationAuthSub: 'ଦାନ ପଞ୍ଜୀକରଣ ଏବଂ ରସିଦ ପ୍ରଦାନ ପାଇଁ କମିଟି PIN ପ୍ରବେଶ କରନ୍ତୁ।',
+    deleteContributionBtn: 'ଦାନ ବିବରଣୀ ହଟାନ୍ତୁ',
 
     villageHeritage: 'ଗ୍ରାମୀଣ ଐତିହ୍ୟ',
     historyTitle: 'ପୁଣ୍ଡାଲ ଦୁର୍ଗା ପୂଜା ମଣ୍ଡପର ଇତିହାସ',
@@ -334,12 +372,16 @@ export const translations: Record<Language, Translations> = {
     devoteeNamePlaceholder: 'ଆପଣଙ୍କ ନାମ / ପରିବାର',
     prayerPlaceholder: 'ଆପଣଙ୍କ ପ୍ରାର୍ଥନା (ଯେପରି: ଜୟ ମା’ ଦୁର୍ଗା)',
     lightVirtualDiyaBtn: 'ଦୀପ ପ୍ରଜ୍ୱଳନ କରନ୍ତୁ',
+    adminLoginToLightDiya: 'ଦୀପ ପ୍ରଜ୍ୱଳନ ପାଇଁ ଆଡମିନ୍ ଲଗଇନ୍',
+    adminDiyaNotice: '୩D ମଣ୍ଡପରେ ଦୀପ ପ୍ରଜ୍ୱଳନ ଏବଂ ପ୍ରାର୍ଥନା ପଞ୍ଜୀକରଣ କେବଳ ପୂଜା କମିଟି ଆଡମିନ୍ ପାଇଁ ସୀମିତ।',
+    adminDiyaAuthTitle: 'କମିଟି ଆଡମିନ୍ ପ୍ରମାଣୀକରଣ',
+    adminDiyaAuthSub: 'ଭକ୍ତଙ୍କ ତରଫରୁ ଦୀପ ପ୍ରଜ୍ୱଳନ କରିବା ପାଇଁ କମିଟି PIN ପ୍ରବେଶ କରନ୍ତୁ।',
 
     adminLoginTitle: 'କମିଟି ଆଡମିନ୍ ଲଗଇନ୍',
     adminLoginSub: 'ପୁଣ୍ଡାଲ ଦୁର୍ଗା ପୂଜା ୱେବସାଇଟ୍ ପରିଚାଳନା ପାଇଁ PIN ପ୍ରବେଶ କରନ୍ତୁ।',
-    enterPin: 'PIN ପ୍ରବେଶ କରନ୍ତୁ (ଡିଫଲ୍ଟ: 1976)',
+    enterPin: 'କମିଟି PIN ପ୍ରବେଶ କରନ୍ତୁ',
     accessAdminBtn: 'ଆଡମିନ୍ ଡ୍ୟାସବୋର୍ଡ ଖୋଲନ୍ତୁ',
-    defaultPasscodeNote: 'ଡିଫଲ୍ଟ କମିଟି PIN: 1976',
+    defaultPasscodeNote: 'ଅନୁମୋଦିତ କମିଟି ସଦସ୍ୟଙ୍କ ପାଇଁ ଉଦ୍ଦିଷ୍ଟ',
     adminDashboardTitle: 'ପୁଣ୍ଡାଲ କମିଟି ଡ୍ୟାସବୋର୍ଡ',
     authenticatedSession: 'ପ୍ରମାଣିତ ସେସନ୍ ସକ୍ରିୟ',
     exitDashboard: 'ଡ୍ୟାସବୋର୍ଡ ବନ୍ଦ କରନ୍ତୁ',
@@ -417,6 +459,11 @@ export const translations: Record<Language, Translations> = {
     uploadImageLabel: 'फोटो अपलोड करें या लिंक दर्ज करें',
     publishPhotoBtn: 'फोटो प्रकाशित करें',
     noPhotosFound: 'कोई फोटो नहीं मिली',
+    adminLoginToAddPhotos: 'फोटो जोड़ने हेतु एडमिन लॉगिन',
+    adminPhotoNotice: 'फोटो अपलोड एवं प्रबंधन केवल अधिकृत पूजा समिति एडमिन के लिए आरक्षित है।',
+    adminAuthRequiredTitle: 'समिति एडमिन प्रमाणीकरण',
+    adminAuthRequiredSub: 'फोटो यादें अपलोड करने हेतु समिति PIN दर्ज करें।',
+    adminVerifiedBadge: 'एडमिन अधिकृत',
 
     supportVillage: 'पुंडाल ग्राम मंडप का सहयोग करें',
     scanToPayTitle: 'स्कैन करें और दान दें',
@@ -436,6 +483,11 @@ export const translations: Record<Language, Translations> = {
     confirmDonationBtn: 'दान दर्ज करें',
     donorsWallTitle: 'पुंडाल दानदाता सूची',
     totalContributions: 'कुल योगदान',
+    adminLoginToRegisterContribution: 'योगदान पंजीकरण हेतु एडमिन लॉगिन',
+    adminDonationNotice: 'दान पंजीकरण एवं दानदाता दीवार प्रबंधन केवल अधिकृत पूजा समिति एडमिन के लिए आरक्षित है।',
+    adminDonationAuthTitle: 'समिति एडमिन प्रमाणीकरण',
+    adminDonationAuthSub: 'दान पंजीकरण एवं रसीद जारी करने हेतु समिति PIN दर्ज करें।',
+    deleteContributionBtn: 'दान विवरण हटाएं',
 
     villageHeritage: 'ग्रामीण धरोहर',
     historyTitle: 'पुंडाल दुर्गा पूजा मंडप का इतिहास',
@@ -448,12 +500,16 @@ export const translations: Record<Language, Translations> = {
     devoteeNamePlaceholder: 'आपका नाम / परिवार',
     prayerPlaceholder: 'आपकी प्रार्थना (जैसे: जय मां दुर्गा)',
     lightVirtualDiyaBtn: 'दीया प्रज्वलित करें',
+    adminLoginToLightDiya: 'दीया प्रज्वलन हेतु एडमिन लॉगिन',
+    adminDiyaNotice: '3D मंडप वेदी पर दीया प्रज्वलन एवं प्रार्थना पंजीकरण केवल अधिकृत पूजा समिति एडमिन के लिए आरक्षित है।',
+    adminDiyaAuthTitle: 'समिति एडमिन प्रमाणीकरण',
+    adminDiyaAuthSub: 'श्रद्धालुओं की ओर से दीया प्रज्वलित करने हेतु समिति PIN दर्ज करें।',
 
     adminLoginTitle: 'समिति एडमिन लॉगिन',
     adminLoginSub: 'पुंडाल दुर्गा पूजा वेबसाइट प्रबंधन हेतु एडमिन PIN दर्ज करें।',
-    enterPin: 'PIN दर्ज करें (डिफ़ॉल्ट: 1976)',
+    enterPin: 'समिति PIN दर्ज करें',
     accessAdminBtn: 'एडमिन डैशबोर्ड खोलें',
-    defaultPasscodeNote: 'डिफ़ॉल्ट समिति PIN: 1976',
+    defaultPasscodeNote: 'केवल अधिकृत समिति सदस्यों हेतु आरक्षित',
     adminDashboardTitle: 'पुंडाल समिति डैशबोर्ड',
     authenticatedSession: 'सत्यापित सत्र सक्रिय',
     exitDashboard: 'डैशबोर्ड से बाहर निकलें',

@@ -20,10 +20,12 @@ import {
   saveCommitteeMembers,
   fetchDonations,
   addDonationRecord,
+  deleteDonationRecord,
   fetchUpiConfig,
   saveUpiConfig,
   fetchVirtualDiyas,
   addVirtualDiya,
+  deleteVirtualDiya,
   getLocalAdminSession,
   setLocalAdminSession,
 } from './firebase';
@@ -144,9 +146,15 @@ export default function App() {
     amount: number,
     villageName?: string,
     message?: string
-  ) => {
+  ): Promise<DonationRecord> => {
     const newDon = await addDonationRecord(donorName, amount, villageName, message);
     setDonations((prev) => [newDon, ...prev]);
+    return newDon;
+  };
+
+  const handleDeleteDonation = async (id: string) => {
+    await deleteDonationRecord(id);
+    setDonations((prev) => prev.filter((d) => d.id !== id));
   };
 
   const handleSaveUpiConfig = async (newUpi: UpiConfig) => {
@@ -157,6 +165,11 @@ export default function App() {
   const handleAddDiya = async (devoteeName: string, message: string) => {
     const newDiya = await addVirtualDiya(devoteeName, message);
     setDiyas((prev) => [newDiya, ...prev]);
+  };
+
+  const handleDeleteDiya = async (id: string) => {
+    await deleteVirtualDiya(id);
+    setDiyas((prev) => prev.filter((d) => d.id !== id));
   };
 
   if (isLoading) {
@@ -197,6 +210,7 @@ export default function App() {
             <ThreeMandapCanvas
               diyas={diyas}
               onLightDiyaClick={() => setIsDiyaModalOpen(true)}
+              isAdminLoggedIn={isAdminLoggedIn}
             />
 
             {/* Quick Access Highlights Grid */}
@@ -279,6 +293,8 @@ export default function App() {
             onAddPhoto={handleAddPhoto}
             onDeletePhoto={handleDeletePhoto}
             isAdminLoggedIn={isAdminLoggedIn}
+            onAdminLogin={handleAdminLogin}
+            onNavigateToAdmin={() => setActiveTab('admin')}
           />
         )}
 
@@ -288,6 +304,10 @@ export default function App() {
             upiConfig={upiConfig}
             donations={donations}
             onAddDonation={handleAddDonation}
+            onDeleteDonation={handleDeleteDonation}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onAdminLogin={handleAdminLogin}
+            onNavigateToAdmin={() => setActiveTab('admin')}
           />
         )}
 
@@ -298,6 +318,10 @@ export default function App() {
             committeeMembers={committeeMembers}
             diyas={diyas}
             onAddDiya={handleAddDiya}
+            onDeleteDiya={handleDeleteDiya}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onAdminLogin={handleAdminLogin}
+            onNavigateToAdmin={() => setActiveTab('admin')}
           />
         )}
 
@@ -316,7 +340,11 @@ export default function App() {
             committeeMembers={committeeMembers}
             onSaveCommittee={handleSaveCommittee}
             photos={photos}
+            onAddPhoto={handleAddPhoto}
             onDeletePhoto={handleDeletePhoto}
+            donations={donations}
+            onAddDonation={handleAddDonation}
+            onDeleteDonation={handleDeleteDonation}
           />
         )}
       </main>
@@ -326,6 +354,8 @@ export default function App() {
         isOpen={isDiyaModalOpen}
         onClose={() => setIsDiyaModalOpen(false)}
         onLightDiya={handleAddDiya}
+        isAdminLoggedIn={isAdminLoggedIn}
+        onAdminLogin={handleAdminLogin}
       />
 
       {/* Global Footer */}

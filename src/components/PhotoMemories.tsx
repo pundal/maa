@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Photo } from '../types';
-import { Image as ImageIcon, Plus, Trash2, X, ZoomIn, Calendar, Upload, Sparkles } from 'lucide-react';
+import { Image as ImageIcon, Plus, Trash2, X, ZoomIn, Calendar, Upload, Sparkles, Lock, Shield, CheckCircle2, KeyRound } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface PhotoMemoriesProps {
@@ -8,6 +8,8 @@ interface PhotoMemoriesProps {
   onAddPhoto: (photo: Omit<Photo, 'id'>) => Promise<void>;
   onDeletePhoto: (id: string) => Promise<void>;
   isAdminLoggedIn: boolean;
+  onAdminLogin?: (passcode: string) => boolean;
+  onNavigateToAdmin?: () => void;
 }
 
 export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
@@ -15,11 +17,16 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
   onAddPhoto,
   onDeletePhoto,
   isAdminLoggedIn,
+  onAdminLogin,
+  onNavigateToAdmin,
 }) => {
   const { t } = useLanguage();
   const [selectedYear, setSelectedYear] = useState<string>('All');
   const [activePhotoModal, setActivePhotoModal] = useState<Photo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [showAdminAuthModal, setShowAdminAuthModal] = useState<boolean>(false);
+  const [adminPinInput, setAdminPinInput] = useState<string>('');
+  const [pinError, setPinError] = useState<boolean>(false);
 
   // New photo form states
   const [newYear, setNewYear] = useState<string>('2024');
@@ -43,8 +50,45 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
     }
   };
 
+  const handleAddClick = () => {
+    if (isAdminLoggedIn) {
+      setShowUploadModal(true);
+    } else {
+      setPinError(false);
+      setAdminPinInput('');
+      setShowAdminAuthModal(true);
+    }
+  };
+
+  const handleAdminAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onAdminLogin) {
+      const success = onAdminLogin(adminPinInput);
+      if (success) {
+        setPinError(false);
+        setShowAdminAuthModal(false);
+        setAdminPinInput('');
+        setShowUploadModal(true);
+      } else {
+        setPinError(true);
+      }
+    } else if (adminPinInput === '1976' || adminPinInput === 'admin') {
+      setPinError(false);
+      setShowAdminAuthModal(false);
+      setAdminPinInput('');
+      setShowUploadModal(true);
+    } else {
+      setPinError(true);
+    }
+  };
+
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdminLoggedIn) {
+      setShowUploadModal(false);
+      setShowAdminAuthModal(true);
+      return;
+    }
     if (!newImageUrl || !newCaption) return;
 
     setIsSubmitting(true);
@@ -83,14 +127,51 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-[#d4af37] to-[#aa820a] hover:brightness-110 text-[#1a0505] px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-xl transition-transform active:scale-95 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{t.addPhotoMemory}</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
+          {isAdminLoggedIn ? (
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-xs font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{t.adminVerifiedBadge}</span>
+              </span>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-[#d4af37] to-[#aa820a] hover:brightness-110 text-[#1a0505] px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-xl transition-transform active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t.addPhotoMemory}</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAddClick}
+              className="flex items-center gap-2 bg-[#1a0505] hover:bg-[#3d0c0c] text-[#ffd700] border border-[#d4af37]/50 hover:border-[#ffd700] px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+              title="Admin Authorization Required"
+            >
+              <Lock className="w-4 h-4 text-[#d4af37]" />
+              <span>{t.adminLoginToAddPhotos}</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Admin Authorization Notice Bar (For normal users) */}
+      {!isAdminLoggedIn && (
+        <div className="bg-[#1a0505]/90 border border-[#d4af37]/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-xs text-[#f5f2ed]/80">
+          <div className="flex items-center gap-2.5">
+            <Shield className="w-4 h-4 text-[#d4af37] shrink-0" />
+            <span>{t.adminPhotoNotice}</span>
+          </div>
+          {onNavigateToAdmin && (
+            <button
+              onClick={onNavigateToAdmin}
+              className="text-[#ffd700] hover:underline font-bold text-xs whitespace-nowrap cursor-pointer"
+            >
+              Admin Panel →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Year Filter Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -200,17 +281,74 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
         </div>
       )}
 
-      {/* Upload New Memory Modal */}
-      {showUploadModal && (
+      {/* Admin Authorization Prompt Modal */}
+      {showAdminAuthModal && (
+        <div className="fixed inset-0 z-50 bg-[#120303]/90 backdrop-blur-lg flex items-center justify-center p-4">
+          <div className="relative max-w-md w-full bg-[#1a0505] p-6 sm:p-8 rounded-2xl gold-border shadow-2xl space-y-6">
+            <button
+              onClick={() => setShowAdminAuthModal(false)}
+              className="absolute top-4 right-4 p-1 text-[#f5f2ed]/60 hover:text-[#ffd700] cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 mx-auto rounded-full bg-[#2a0808] border border-[#d4af37]/40 flex items-center justify-center">
+                <Shield className="w-7 h-7 text-[#ffd700]" />
+              </div>
+              <h3 className="text-xl font-serif-cinzel font-bold text-[#ffd700]">
+                {t.adminAuthRequiredTitle}
+              </h3>
+              <p className="text-xs text-[#f5f2ed]/70">
+                {t.adminAuthRequiredSub}
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminAuthSubmit} className="space-y-4">
+              <div className="relative">
+                <KeyRound className="absolute left-3.5 top-3.5 w-5 h-5 text-[#d4af37]" />
+                <input
+                  type="password"
+                  placeholder="Enter Committee PIN"
+                  value={adminPinInput}
+                  onChange={(e) => setAdminPinInput(e.target.value)}
+                  autoFocus
+                  required
+                  className="w-full bg-[#2a0808] border border-[#d4af37]/40 rounded-xl py-3 pl-11 pr-4 text-sm text-[#f5f2ed] focus:border-[#ffd700] outline-none"
+                />
+              </div>
+
+              {pinError && (
+                <p className="text-xs text-red-400 font-medium text-center">
+                  Invalid Committee PIN. Please try again.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#d4af37] to-[#aa820a] hover:brightness-110 text-[#1a0505] p-3.5 rounded-xl font-bold text-sm shadow-xl transition-all cursor-pointer"
+              >
+                Verify & Unlock Photo Upload
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Upload New Memory Modal (Admin Only) */}
+      {showUploadModal && isAdminLoggedIn && (
         <div className="fixed inset-0 z-50 bg-[#120303]/90 backdrop-blur-lg flex items-center justify-center p-4">
           <div className="relative max-w-lg w-full bg-[#1a0505] p-6 sm:p-8 rounded-2xl gold-border shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-4">
-              <h3 className="text-xl font-serif-cinzel font-bold text-[#ffd700]">
-                Add Photo Memory
-              </h3>
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-[#ffd700]" />
+                <h3 className="text-xl font-serif-cinzel font-bold text-[#ffd700]">
+                  {t.addPhotoMemory}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="p-1 text-[#f5f2ed]/60 hover:text-[#ffd700]"
+                className="p-1 text-[#f5f2ed]/60 hover:text-[#ffd700] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -287,7 +425,7 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
                 disabled={isSubmitting || !newImageUrl || !newCaption}
                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#aa820a] hover:brightness-110 disabled:opacity-50 text-[#1a0505] p-3 rounded-xl font-bold text-sm shadow-xl transition-all cursor-pointer"
               >
-                {isSubmitting ? 'Saving Memory...' : 'Publish Photo Memory'}
+                {isSubmitting ? 'Saving Memory...' : t.publishPhotoBtn}
               </button>
             </form>
           </div>
@@ -296,3 +434,4 @@ export const PhotoMemories: React.FC<PhotoMemoriesProps> = ({
     </div>
   );
 };
+
